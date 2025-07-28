@@ -1,4 +1,4 @@
-# ForumHub API
+# ForumHub API REST
 
 API REST construída com Spring Boot para gerenciamento de tópicos, respostas e usuários em um fórum. Suporta autenticação com JWT e segue boas práticas RESTful. Desenvolvida no Bootcamp ONE ORACLE + Alura - Especialização BackEnd
 
