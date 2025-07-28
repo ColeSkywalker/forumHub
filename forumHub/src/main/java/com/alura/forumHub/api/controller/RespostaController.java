@@ -66,7 +66,7 @@ public class RespostaController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PutMapping("{id2}")
+    @PutMapping("/{id2}")
     @Transactional
     public ResponseEntity editarResposta(@RequestBody @Valid RespostaAlterarDto dados, @PathVariable Long id, @PathVariable Long id2){
         Usuario usuarioLogado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -82,7 +82,7 @@ public class RespostaController {
 
     }
 
-    @DeleteMapping("{id2}")
+    @DeleteMapping("/{id2}")
     @Transactional
     public ResponseEntity deletarResposta(@PathVariable Long id2){
         Usuario usuarioLogado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
