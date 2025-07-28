@@ -105,7 +105,6 @@ A aplicação estará disponível em:
 👉 `http://localhost:8080`
 
 
----
 
 ## 📎 Licença
 
