@@ -2,6 +2,10 @@
 
 API REST construída com Spring Boot para gerenciamento de tópicos, respostas e usuários em um fórum. Suporta autenticação com JWT e segue boas práticas RESTful. Desenvolvida no Bootcamp ONE ORACLE + Alura - Especialização BackEnd
 
+<p align="center">
+  <img width="500" height="500" alt="Badge-Spring" src="https://github.com/user-attachments/assets/c41cfc0d-9f6b-449a-9bf3-f0643cd8daab" />
+</p>
+
 
 ## 🧰 Tecnologias Utilizadas
 
