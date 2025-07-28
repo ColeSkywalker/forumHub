@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Table(name = "topicos")
@@ -27,11 +28,11 @@ public class Topico {
     @Enumerated(EnumType.STRING)
     private CursosTopico curso;
 
-    @OneToMany(mappedBy = "topico") // Leia como: UM topico pode ter varias respostas
-    private List<Resposta> respostas;
+    @OneToMany(mappedBy = "topico", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Resposta> respostas = new ArrayList<>();;
 
     @Setter
-    @ManyToOne // Um ou mais topicos podem ter apenas um autor/usuario
+    @ManyToOne
     @JoinColumn(name = "autor_id")
     private Usuario autor;
 
@@ -45,10 +46,10 @@ public class Topico {
     }
 
     public void editarTopico(TopicoEditarDto dados) {
-        if (dados.titulo() != null) {
+        if (dados.titulo() != null && !dados.titulo().isBlank()) {
             this.titulo = dados.titulo();
         }
-        if (dados.mensagem() != null) {
+        if (dados.mensagem() != null && !dados.mensagem().isBlank()) {
             this.mensagem = dados.mensagem();
         }
         if (dados.statusTopico() != null) {

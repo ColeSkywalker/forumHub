@@ -25,6 +25,7 @@ public class Resposta {
     private Topico topico;
 
     private LocalDateTime dataCriacao;
+
     @ManyToOne
     @JoinColumn(name = "autor_id")
     @Setter

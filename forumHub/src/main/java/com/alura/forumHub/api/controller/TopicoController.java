@@ -9,7 +9,6 @@ import com.alura.forumHub.api.dto.topico.TopicosListagemDto;
 import com.alura.forumHub.api.repository.TopicoRepository;
 import com.alura.forumHub.api.repository.UsuarioRepository;
 import com.alura.forumHub.api.service.TopicoService;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -45,7 +44,7 @@ public class TopicoController {
         repository.save(topico);
 
         var uri = uriBuilder.path("/topicos/{id}").buildAndExpand(topico.getId()).toUri();
-        return ResponseEntity.created(uri).body(new TopicosListagemDto(topico));
+        return ResponseEntity.created(uri).body(new TopicoDetalhadoDto(topico));
     }
     @GetMapping
     public ResponseEntity<Page<TopicosListagemDto>> listarTodosTopicos(@PageableDefault(size = 10, sort = {"dataCriacao"}, direction = Sort.Direction.DESC) Pageable paginacao){
@@ -54,30 +53,34 @@ public class TopicoController {
     }
     @GetMapping("/{id}")
     public ResponseEntity detalharTopico(@PathVariable Long id){
-        var topico = repository.getTopicosById(id);
-        return ResponseEntity.ok(new TopicoDetalhadoDto(topico));
+        return repository.findById(id)
+                .map(topico -> ResponseEntity.ok(new TopicoDetalhadoDto(topico)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
     @Transactional
     public ResponseEntity editarTopico(@RequestBody @Valid TopicoEditarDto dados, @PathVariable Long id){
         Usuario usuarioLogado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        var topico = repository.findById(id).orElseThrow(() -> new RuntimeException("Tópico não encontrado"));
-        topicoService.verificarAutor(topico.getAutor(), usuarioLogado);
-
-        topico.editarTopico(dados);
-        return ResponseEntity.ok(new TopicoDetalhadoDto(topico));
+        return repository.findById(id)
+                .map(topico -> {
+                    topicoService.verificarAutor(topico.getAutor(), usuarioLogado);
+                    topico.editarTopico(dados);
+                    return ResponseEntity.ok(new TopicoDetalhadoDto(topico));
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
     @DeleteMapping("/{id}")
     @Transactional
     public ResponseEntity deletarTopico(@PathVariable Long id){
         Usuario usuarioLogado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        var topico = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Tópico não encontrado"));
-        topicoService.verificarAutor(topico.getAutor(), usuarioLogado);
-
-        repository.delete(topico);
-        return ResponseEntity.noContent().build();
+        return repository.findById(id)
+                .map(topico -> {
+                    topicoService.verificarAutor(topico.getAutor(), usuarioLogado);
+                    repository.delete(topico);
+                    return ResponseEntity.noContent().build();
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
 

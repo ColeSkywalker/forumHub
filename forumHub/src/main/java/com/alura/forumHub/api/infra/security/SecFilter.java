@@ -25,10 +25,10 @@ public class SecFilter extends OncePerRequestFilter {
         if(tokenJWT != null){
             var subject = tokenJWTService.getSubject(tokenJWT);
             var usuario = repository.findByLogin(subject);
-            var authentication = new UsernamePasswordAuthenticationToken(usuario, null, usuario.getAuthorities()); //força autenticação (pq a aplicação é stateless)
+            var authentication = new UsernamePasswordAuthenticationToken(usuario, null, usuario.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
-        filterChain.doFilter(request, response); // encaminha pro proximo filtro
+        filterChain.doFilter(request, response);
 
     }
 

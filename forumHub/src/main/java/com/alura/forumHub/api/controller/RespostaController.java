@@ -7,6 +7,7 @@ import com.alura.forumHub.api.dto.resposta.RespostaAlterarDto;
 import com.alura.forumHub.api.dto.resposta.RespostaDetalhadaDto;
 import com.alura.forumHub.api.dto.resposta.RespostaCriarDto;
 import com.alura.forumHub.api.dto.resposta.RespostasDoTopicoDto;
+import com.alura.forumHub.api.dto.topico.TopicoDetalhadoDto;
 import com.alura.forumHub.api.repository.RespostaRepository;
 import com.alura.forumHub.api.repository.TopicoRepository;
 import com.alura.forumHub.api.repository.UsuarioRepository;
@@ -32,6 +33,8 @@ public class RespostaController {
     private TopicoRepository topicoRepository;
     @Autowired
     private RespostaService respostaService;
+    @Autowired
+    private RespostaRepository respostaRepository;
 
     @PostMapping
     @Transactional
@@ -40,56 +43,57 @@ public class RespostaController {
         String login = authentication.getName();
 
         Usuario autor = usuarioRepository.findByLogin(login);
-        Topico topico = topicoRepository.findById(id).orElseThrow(() -> new RuntimeException("Tópico não encontrado"));
 
-        var resposta = new Resposta(dados, autor, topico);
-        topico.topicoRecebeResposta();
-
-        repository.save(resposta);
-        var uri = uriBuilder.path("respostas/{id}").buildAndExpand(resposta.getId()).toUri();
-        return ResponseEntity.created(uri).body(new RespostaDetalhadaDto(resposta, autor, topico));
+        return topicoRepository.findById(id).map(topico -> {
+            var resposta = new Resposta(dados, autor, topico);
+            topico.topicoRecebeResposta();
+            repository.save(resposta);
+            var uri = uriBuilder.path("respostas/{id}").buildAndExpand(resposta.getId()).toUri();
+            return ResponseEntity.created(uri).body(new RespostaDetalhadaDto(resposta, autor, topico));
+        }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/{id2}")
     public ResponseEntity detalharResposta(@PathVariable Long id, @PathVariable Long id2){
-        Topico topico = topicoRepository.findById(id).orElseThrow(() -> new RuntimeException("Tópico não encontrado"));
-        Resposta resposta = repository.findById(id2).orElseThrow(() -> new RuntimeException("Resposta não encontrada"));
-
-        return ResponseEntity.ok(new RespostaDetalhadaDto(resposta, topico));
+        return topicoRepository.findById(id).map(topico -> {
+            return repository.findById(id2)
+                    .map(resposta -> ResponseEntity.ok(new RespostaDetalhadaDto(resposta, topico)))
+                    .orElseGet(() -> ResponseEntity.notFound().build());
+        }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping
     public ResponseEntity listarTodasRespostasDoTopico(@PathVariable Long id){
-        Topico topico = topicoRepository.findById(id).orElseThrow(() -> new RuntimeException("Tópico não encontrado"));
-
-
-        return ResponseEntity.ok(new RespostasDoTopicoDto(topico));
+        return topicoRepository.findById(id).map(topico -> ResponseEntity.ok(new RespostasDoTopicoDto(topico)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PutMapping("{id2}")
     @Transactional
     public ResponseEntity editarResposta(@RequestBody @Valid RespostaAlterarDto dados, @PathVariable Long id, @PathVariable Long id2){
         Usuario usuarioLogado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Topico topico = topicoRepository.findById(id).orElseThrow(() -> new RuntimeException("Tópico não encontrado"));
-        Resposta resposta = repository.findById(id2).orElseThrow(() -> new RuntimeException("Resposta não encontrada"));
+        return topicoRepository.findById(id).map(topico -> {
+            return repository.findById(id2)
+                    .map(resposta -> {
+                        respostaService.verificarAutor(resposta.getAutor(), usuarioLogado);
+                        resposta.alterarResposta(dados);
+                        return ResponseEntity.ok(new RespostaDetalhadaDto(resposta, topico));
+                    })
+                    .orElseGet(() -> ResponseEntity.notFound().build());
+        }).orElseGet(() -> ResponseEntity.notFound().build());
 
-        respostaService.verificarAutor(resposta.getAutor(), usuarioLogado);
-
-        resposta.alterarResposta(dados);
-
-        return ResponseEntity.ok(new RespostaDetalhadaDto(resposta, topico));
     }
 
     @DeleteMapping("{id2}")
     @Transactional
     public ResponseEntity deletarResposta(@PathVariable Long id2){
         Usuario usuarioLogado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        var resposta = repository.findById(id2)
-                .orElseThrow(() -> new EntityNotFoundException("Resposta não encontrada"));
-        respostaService.verificarAutor(resposta.getAutor(), usuarioLogado);
-
-
-        repository.delete(resposta);
-        return ResponseEntity.noContent().build();
+        return repository.findById(id2)
+                .map(resposta -> {
+                    respostaService.verificarAutor(resposta.getAutor(), usuarioLogado);
+                    repository.delete(resposta);
+                    return ResponseEntity.noContent().build();
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }
