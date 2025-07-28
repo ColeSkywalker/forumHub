@@ -1,11 +1,7 @@
 package com.alura.forumHub.api.controller;
-import com.alura.forumHub.api.domain.topico.CursosTopico;
-import com.alura.forumHub.api.domain.topico.Topico;
-import com.alura.forumHub.api.domain.usuario.Usuario;
 import com.alura.forumHub.api.dto.topico.TopicoEditarDto;
 import com.alura.forumHub.api.dto.topico.TopicoNovoDto;
 import com.alura.forumHub.api.dto.topico.TopicosListagemDto;
-import com.alura.forumHub.api.dto.usuario.UsuarioLoginDto;
 import com.alura.forumHub.api.repository.TopicoRepository;
 import com.alura.forumHub.api.repository.UsuarioRepository;
 import com.alura.forumHub.api.service.TopicoService;
@@ -38,9 +34,9 @@ class TopicoControllerTest {
     @MockitoBean
     private TopicoService topicoService;
     @Autowired
-    TopicoRepository topicoRepository;
+    private TopicoRepository topicoRepository;
     @Autowired
-    UsuarioRepository usuarioRepository;
+    private UsuarioRepository usuarioRepository;
 
 
     @Test
@@ -52,7 +48,6 @@ class TopicoControllerTest {
 
         assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
     }
-
 
     @Test
     @DisplayName("Deveria retornar 404 quando tópico não existir")

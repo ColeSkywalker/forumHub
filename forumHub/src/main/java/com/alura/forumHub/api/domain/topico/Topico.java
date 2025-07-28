@@ -29,7 +29,7 @@ public class Topico {
     private CursosTopico curso;
 
     @OneToMany(mappedBy = "topico", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<Resposta> respostas = new ArrayList<>();;
+    private List<Resposta> respostas = new ArrayList<>();
 
     @Setter
     @ManyToOne
